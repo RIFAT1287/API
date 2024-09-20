@@ -2,8 +2,16 @@ from fastapi import FastAPI, HTTPException
 from db import DB
 from config import C
 from bson.objectid import ObjectId
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins for now
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 token = C.TOKEN
 bot_id = token.split(':')[0]
 dbo = DB(collection_name=C.DB_NAME)
