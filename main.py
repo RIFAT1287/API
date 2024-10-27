@@ -51,7 +51,7 @@ async def get_balance(user: int):
         tronix_balance = dbo.get_property(user, "tonx") or 0
         mined_ton = dbo.get_property(user, "mined_ton") or 0
         hash_power= dbo.get_property(user, "ghs") or 1
-        status= dbo.get_property(user, "status") or "inactive"
+        status= dbo.get_property(user, "status") or "start"
         
         response_data = {
             "ton_balance": ton_balance,
