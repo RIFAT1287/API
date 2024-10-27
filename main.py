@@ -4,6 +4,8 @@ from pydantic import BaseModel
 from db import DB
 from config import C
 from bson.objectid import ObjectId
+from datetime import datetime
+import time
 
 app = FastAPI()
 token = C.TOKEN
@@ -30,6 +32,13 @@ class UserBalancesResponse(BaseModel):
     mined_ton: float
     status: str
     
+class UpdateMiningStatus(BaseModel):
+    status: str    
+
+class MinedTonResponse(BaseModel):
+    status: str
+    mined_ton: float
+
 
 @app.get("/")
 async def home():
@@ -41,7 +50,7 @@ async def home():
     return response_data
 
 @app.get("/balance", response_model=UserBalancesResponse)
-async def get_balance(user: int):
+async def get_balance(user: int, hash:int):
     try:
         user = user
         if not user:
@@ -50,13 +59,13 @@ async def get_balance(user: int):
         ton_balance = dbo.get_property(user, "ton") or 0
         tronix_balance = dbo.get_property(user, "tonx") or 0
         mined_ton = dbo.get_property(user, "mined_ton") or 0
-        hash_power= dbo.get_property(user, "ghs") or 1
+        dbo.set_property(user, "ghs", hash)
         status= dbo.get_property(user, "status") or "start"
         
         response_data = {
             "ton_balance": ton_balance,
             "tronix_balance": tronix_balance,
-            "hase_power": hash_power,
+            "hase_power": hash,
             "mined_ton": mined_ton,
             "status": status,
             
@@ -67,59 +76,63 @@ async def get_balance(user: int):
         print(f"Error fetching balance for user {user}: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-@app.get("/mining_balance/{telegram_user_id}")
-async def get_mining_balance(telegram_user_id: str):
+@app.get("/update_mining_status", response_model=UpdateMiningStatus)
+async def update_mining_status(user: int):
     try:
-        user = telegram_user_id
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-
-        sol_mine = dbo.get_property(user, "sol_mine") or 0
-        fsol_mine = f"{sol_mine:.9f}"
-        return {"mining_balance": fsol_mine}
+        dbo.set_property(user, "status", "active")
+        dbo.set_property(user, "last_mined", datetime.now().strftime('%Y/%m/%d %H:%M:%S'))
+        return {"status": "success", "message": "Mining status updated successfully"}
+        
+    except Exception as e:
+        print(f"Error changing status for user {user}: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")    
+    
+@app.get("/update_mining", response_model=MinedTonResponse)
+async def calculate_mined_ton(user: int, cps:float):
+    try:
+        status= dbo.get_property(user, "status") or "start"
+        if not status == "active":
+            raise HTTPException(status_code=404, detail="User not found or mining not active")
+        current_time = time.time()
+        last_mined_time = dbo.get_property(user, "last_mined")
+        if last_mined_time is None:
+            last_mined_time = current_time
+        last_mined_timestamp = datetime.strptime(last_mined_time, '%Y/%m/%d %H:%M:%S').timestamp() 
+    
+        hase_power = dbo.get_property(user, "ghs") or 9
+        coin_per_second = cps
+    
+        mining_duration = current_time - last_mined_timestamp
+        mining_value_per_sec = hase_power * coin_per_second
+        new_mined_ton = mining_value_per_sec * mining_duration
+    
+        mined_ton = dbo.get_property(user, "mined_ton") or 0    
+        dbo.add_value(user, "mined_ton", new_mined_ton)
+        dbo.set_property(user, "last_mined", datetime.now().strftime('%Y/%m/%d %H:%M:%S'))
+        updated_mined_ton=new_mined_ton + mined_ton
+    
+    
+        return {"status": "success", "mined_ton": updated_mined_ton}
 
     except Exception as e:
-        print(f"Error fetching mining balance for user {telegram_user_id}: {e}")
+        print(f"Error calculating mined TON for user {user}: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
-
-@app.post("/update_balance/{telegram_user_id}")
-async def update_mining_balance(telegram_user_id: str, balance_update: MiningBalanceUpdate):
-    try:
-        user = telegram_user_id
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-
-        # Update the mining balance for the user
-        mining_balance = balance_update.mining_balance
-        dbo.set_property(user, "sol_mine", mining_balance)
-        fsol_mine = f"{mining_balance:.9f}"
-
-        return {"success": True, "mining_balance": fsol_mine}
-
-    except Exception as e:
-        print(f"Error updating mining balance for user {telegram_user_id}: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
-
-
-@app.post("/claim/{telegram_user_id}")
-async def claim(telegram_user_id: str):
-    try:
-        user = telegram_user_id
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-        
-        # Fetch user's SOL and mining balance
-        sol = dbo.get_property(user, "sol") or 0
-        sol_mine = dbo.get_property(user, "sol_mine") or 0
-        
-        # Add the mining balance to SOL balance and reset mining balance to 0
-        new_sol_balance = sol + sol_mine
-        dbo.set_property(user, "sol", new_sol_balance)  # Update SOL balance
-        dbo.set_property(user, "sol_mine", 0)  # Reset mining balance to 0
-
-        return {"success": True, "sol_balance": new_sol_balance}
-
-    except Exception as e:
-        print(f"Error processing claim for user {telegram_user_id}: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
-        
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    
