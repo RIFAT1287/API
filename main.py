@@ -42,6 +42,16 @@ class MinedTonResponse(BaseModel):
 class ClaimTonResponse(BaseModel):
     status: str
     message: str
+    
+class HasePowerUpdateRequest(BaseModel):
+    user: int
+    hase_power: float
+
+class HasePowerUpdateResponse(BaseModel):
+    success: bool
+    error: str = None
+ 
+    
 
 @app.get("/")
 async def home():
@@ -62,13 +72,15 @@ async def get_balance(user: int, hash:int):
         ton_balance = dbo.get_property(user, "ton") or 0
         tronix_balance = dbo.get_property(user, "tonx") or 0
         mined_ton = dbo.get_property(user, "mined_ton") or 0
-        dbo.set_property(user, "ghs", hash)
+        ghs = dbo.get_property(user, "ghs")
+        if ghs==None:
+            ghs=hash
         status= dbo.get_property(user, "status") or "start"
         
         response_data = {
             "ton_balance": ton_balance,
             "tronix_balance": tronix_balance,
-            "hase_power": hash,
+            "hase_power": ghs,
             "mined_ton": mined_ton,
             "status": status,
             
@@ -141,7 +153,20 @@ async def claim_ton(user: int, mined_ton: float, min: float):
 
     
   
-  
+@app.post("/update_hase_power", response_model=HasePowerUpdateResponse)
+async def update_hase_power(data: HasePowerUpdateRequest):
+    try:
+        current_hase_power = dbo.get_property(data.user, "ghs") or 0
+        new_hase_power = current_hase_power + data.hase_power
+
+        
+        dbo.set_property(data.user, "ghs", new_hase_power)
+        
+        return {"success": True}
+        
+    except Exception as e:
+        print(f"Error updating hase_power for user {data.user}: {e}")
+        return {"success": False, "error": str(e)}
   
   
   
