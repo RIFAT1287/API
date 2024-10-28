@@ -51,6 +51,10 @@ class HasePowerUpdateResponse(BaseModel):
     success: bool
     error: str = None
  
+class Transaction(BaseModel):
+    user_id: int
+    transaction: dict  
+ 
     
 
 @app.get("/")
@@ -170,9 +174,20 @@ async def update_hase_power(data: HasePowerUpdateRequest):
   
   
   
-  
-  
-  
+@app.post("/add_transection")
+async def add_transaction_endpoint(transaction_data: Transaction):
+    user_id = transaction_data.user_id
+    transaction = transaction_data.transaction
+    
+    if not dbo.is_exists(user_id):
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    try:
+        dbo.add_transaction(user_id, transaction)
+        return {"success": True, "message": "Transaction added successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to add transaction: {e}")
+
   
   
   
