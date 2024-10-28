@@ -17,6 +17,16 @@ class DB:
             {"$set": user_data},
             upsert=True
         )
+        
+        
+    def add_transaction(self, user_id, transaction):
+        user_data = self._load_data(user_id)
+        transactions = user_data.get("transactions", [])
+        
+        transactions.append(transaction)
+        user_data["transactions"] = transactions
+
+        self._save_data(user_id, user_data)    
 
     def get_property(self, user_id, property_name, default=None):
         user_data = self._load_data(user_id)
