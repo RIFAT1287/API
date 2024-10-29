@@ -16,12 +16,11 @@ dbo = DB(collection_name=C.DB_NAME)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], 
+    allow_origins=["https://tron.tronf.in"],  # List the specific origins you want to allow
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Allow all methods (GET, POST, etc.)
+    allow_headers=["*"],  # Allow all headers
 )
-
 class MiningBalanceUpdate(BaseModel):
     mining_balance: float
 
