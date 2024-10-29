@@ -27,9 +27,18 @@ class DB:
         user_data["transactions"] = transactions
 
         self._save_data(user_id, user_data)    
+        
+    def update_boost_data(self, user_id, user_data):
+        
+        data = self._load_data(user_id)
+        bs_data = data.get("boost_data", [])
 
-   
-    
+        
+        bs_data.append(user_data)
+        data["boost_data"] = bs_data
+
+        self._save_data(user_id, data)    
+
     def get_property(self, user_id, property_name, default=None):
         user_data = self._load_data(user_id)
         return user_data.get(property_name, default)
