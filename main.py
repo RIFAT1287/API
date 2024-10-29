@@ -16,11 +16,12 @@ dbo = DB(collection_name=C.DB_NAME)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://tron.tronf.in"],  # List the specific origins you want to allow
+    allow_origins=["*"], 
     allow_credentials=True,
-    allow_methods=["*"],  # Allow all methods (GET, POST, etc.)
-    allow_headers=["*"],  # Allow all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
+
 class MiningBalanceUpdate(BaseModel):
     mining_balance: float
 
@@ -54,7 +55,9 @@ class Transaction(BaseModel):
     user_id: int
     transaction: dict  
  
-    
+class BoostData(BaseModel):
+    user_id: int
+    user_data: dict    
 
 @app.get("/")
 async def home():
@@ -64,6 +67,7 @@ async def home():
         "version": "1.0"
     }
     return response_data
+
 
 @app.get("/balance", response_model=UserBalancesResponse)
 async def get_balance(user: int, hash:int):
@@ -188,7 +192,13 @@ async def add_transaction_endpoint(transaction_data: Transaction):
         raise HTTPException(status_code=500, detail=f"Failed to add transaction: {e}")
 
   
-  
+@app.post("/update_boost_data")
+async def update_boost_data(data: BoostData):
+    try:
+        dbo.update_boost_data(data.user_id, data.user_data)
+        return {"status": "success", "message": "User data updated successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update user data:{e}") 
   
   
   
