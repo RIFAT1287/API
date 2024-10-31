@@ -72,6 +72,7 @@ class UpdateBalanceRequest(BaseModel):
     coin: str
     amount: float
     set_coin: str
+
     
 
 @app.get("/")
@@ -257,3 +258,27 @@ async def update_balance(request: UpdateBalanceRequest):
         raise HTTPException(status_code=400, detail="Invalid coin type")
 
     return {"success": True}    
+
+
+@app.post("/save_withdraw")
+async def save_withdraw(data: dict):
+    try:
+        current_withdrawals = dbo.get_property(bot_id, "withdrawals", default=[])
+
+        updated_withdrawals = current_withdrawals + [data]
+        dbo.set_property(bot_id, "withdrawals", updated_withdrawals)
+        
+
+        return {"success": True}
+    except Exception as e:
+        print(f"Error saving withdraw data for user: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve boost data")
+        
+@app.get("/get_withdraw")
+async def get_with():
+    try:
+        user_data = dbo.get_property(bot_id, "withdrawals", default=[])
+        return user_data
+    except Exception as e:
+        print(f"Error retrieving boost data for user {user}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve boost data")            
