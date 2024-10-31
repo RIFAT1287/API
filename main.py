@@ -55,6 +55,9 @@ class HasePowerUpdateResponse(BaseModel):
 class Transaction(BaseModel):
     user_id: int
     transaction: dict  
+
+class TranDataResponse(BaseModel):
+    tran_data: List[dict] = []
  
 class BoostData(BaseModel):
     user_data: dict    
@@ -202,6 +205,15 @@ async def add_transaction_endpoint(transaction_data: Transaction):
         return {"success": True, "message": "Transaction added successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to add transaction: {e}")
+        
+@app.get("/get_transaction")
+async def get_boost_data(user: int):
+    try:
+        user_data = dbo.get_property(user, "transactions", default=[])
+        return user_data
+    except Exception as e:
+        print(f"Error retrieving boost data for user {user}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve boost data")        
 
   
 @app.post("/update_boost_data")
@@ -219,7 +231,7 @@ async def get_boost_data():
         user_data = dbo.get_property(bot_id, "boost_data", default=[])
         return {"boost_data": user_data}
     except Exception as e:
-        print(f"Error retrieving boost data for user {user_id}: {e}")
+        print(f"Error retrieving boost data for user : {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve boost data")
 
 @app.post("/update_balance")
