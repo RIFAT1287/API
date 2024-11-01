@@ -250,11 +250,11 @@ async def update_balance(request: UpdateBalanceRequest):
             raise HTTPException(status_code=400, detail="Insufficient TON balance")
         dbo.set_property(user_id, "ton", new_balance)
     elif coin == con:
-        prev = float(dbo.get_property("tonx") or 0)
+        prev = float(dbo.get_property(user_id, "tonx") or 0)
         new_balance =prev - amount
         if new_balance < 0:
             raise HTTPException(status_code=400, detail="Insufficient TRON balance")
-        db.set_property(user_id, "tonx", new_balance)
+        dbo.set_property(user_id, "tonx", new_balance)
     else:
         raise HTTPException(status_code=400, detail="Invalid coin type")
 
@@ -322,7 +322,6 @@ async def update_friend_data(user_id: int, level: int, first_name: str, last_nam
 @app.get("/get_friend_data")
 async def get_friend_data(user_id: int):
     try:
-        # Retrieve friend data for the specified user
         friend_data = dbo.get_property(user_id, "friends_data", default={
             "friends_count": {
                 "total_friends": 0,
@@ -334,6 +333,16 @@ async def get_friend_data(user_id: int):
         })
 
         return friend_data
+    except Exception as e:
+        print(f"Error retrieving friend data for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve friend data")
+
+@app.get("/ref_bonus")
+async def ref_bonus(user_id: int, tronix: float, ghs: float):
+    try:
+        dbo.add_value(user_id, "tonx", tronix)
+        dbo.add_value(user_id, "ghs", ghs)
+        return {"success": True}
     except Exception as e:
         print(f"Error retrieving friend data for user {user_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve friend data")
