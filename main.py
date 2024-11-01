@@ -346,3 +346,24 @@ async def ref_bonus(user_id: int, tronix: float, ghs: float):
     except Exception as e:
         print(f"Error retrieving friend data for user {user_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve friend data")
+        
+@app.get("/setrefer")
+async def ref_set(user_id: int, ref: int):
+    try:
+        dbo.set_property(user_id, "referby", ref)
+       
+        return {"success": True}
+    except Exception as e:
+        print(f"Error adding ref for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to set ref")
+        
+@app.get("/getrefer")
+async def ref_get(user_id: int):
+    try:
+        ido = dbo.get_property(user_id, "referby") or None
+       
+        return ido
+    except Exception as e:
+        print(f"Error get ref for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to set ref")
+
