@@ -357,11 +357,6 @@ async def ref_set(user_id: int, ref: int):
         print(f"Error adding ref for user {user_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to set ref")
         
-from fastapi import FastAPI, HTTPException
-from db import dbo
-
-app = FastAPI()
-
 @app.get("/getrefer")
 async def ref_get(user_id: int):
     try:
