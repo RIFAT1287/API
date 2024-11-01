@@ -73,6 +73,7 @@ class UpdateBalanceRequest(BaseModel):
     amount: float
     set_coin: str
 
+
     
 
 @app.get("/")
@@ -282,3 +283,57 @@ async def get_with():
     except Exception as e:
         print(f"Error retrieving boost data for user {user}: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve boost data")            
+@app.get("/update_friend_data")
+async def update_friend_data(user_id: int, level: int, first_name: str, last_name: str, tronix: float, ghs: int):
+    try:
+        # Fetch existing friend data for the user
+        friend_data = dbo.get_property(user_id, "friends_data", default={
+            "friends_count": {
+                "total_friends": 0,
+                "level1": 0,
+                "level2": 0,
+                "level3": 0
+            },
+            "friends": []
+        })
+
+        # Update friends count based on the level
+        friend_data["friends_count"]["total_friends"] += 1
+        friend_data["friends_count"]["level" + str(level)] += 1
+
+
+        # Add the new friend to the list with their details
+        friend_data["friends"].append({
+            "level": level,
+            "name": f"{first_name} {last_name}",
+            "tronix": tronix,
+            "hase_power": ghs
+        })
+
+        # Save the updated friend data back to the database
+        dbo.set_property(user_id, "friends_data", friend_data)
+
+        return {"success": True}
+    except Exception as e:
+        print(f"Error updating friend data: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update friend data")
+
+
+@app.get("/get_friend_data")
+async def get_friend_data(user_id: int):
+    try:
+        # Retrieve friend data for the specified user
+        friend_data = dbo.get_property(user_id, "friends_data", default={
+            "friends_count": {
+                "total_friends": 0,
+                "level1": 0,
+                "level2": 0,
+                "level3": 0
+            },
+            "friends": []
+        })
+
+        return friend_data
+    except Exception as e:
+        print(f"Error retrieving friend data for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve friend data")
