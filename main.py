@@ -357,13 +357,16 @@ async def ref_set(user_id: int, ref: int):
         print(f"Error adding ref for user {user_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to set ref")
         
+from fastapi import FastAPI, HTTPException
+from db import dbo
+
+app = FastAPI()
+
 @app.get("/getrefer")
 async def ref_get(user_id: int):
     try:
-        ido = dbo.get_property(user_id, "referby") or None
-       
-        return ido
+        ido = dbo.get_property(user_id, "referby", default=None)
+        return {"referred_by": ido}
     except Exception as e:
-        print(f"Error get ref for user {user_id}: {e}")
-        raise HTTPException(status_code=500, detail="Failed to set ref")
-
+        print(f"Error getting ref for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve ref")
