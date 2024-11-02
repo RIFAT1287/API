@@ -228,15 +228,15 @@ async def update_boost_data(data: BoostData):
         raise HTTPException(status_code=500, detail=f"Failed to update user data:{e}") 
   
   
-@app.get("/get_boost_data", response_model=BoostDataResponse)
+@app.get("/get_boost_data")
 async def get_boost_data():
     try:
         user_data = dbo.get_property(bot_id, "boost_data", default=[])
-        return {"boost_data": user_data}
+        return user_data
     except Exception as e:
         print(f"Error retrieving boost data for user : {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve boost data")
-
+        
 @app.post("/update_balance")
 async def update_balance(request: UpdateBalanceRequest):
     user_id = request.user_id
