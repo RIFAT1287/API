@@ -161,11 +161,7 @@ async def calculate_mined_ton(user: int, cps:float):
   
   
 @app.get("/claim_ton", response_model=ClaimTonResponse)
-async def claim_ton(user: int, mined_ton: float, min: float):
-
-    minimum_claim=min
-    if mined_ton < minimum_claim:
-        raise HTTPException(status_code=400, detail="Insufficient mined TON to claim.")
+async def claim_ton(user: int, mined_ton: float):
     try:
         user_balance = dbo.get_property(user, "ton") or 0
         updated_balance = user_balance + mined_ton
@@ -173,7 +169,7 @@ async def claim_ton(user: int, mined_ton: float, min: float):
         dbo.set_property(user, "mined_ton", 0)
         return {"status": "success", "message": "TON claimed successfully."}
     except Exception as e:
-        print(f"Error claiming TON for user {user_id}: {e}")
+        print(f"Error claiming TON for user {user}: {e}")
         raise HTTPException(status_code=500, detail="Failed to update balance in database")   
 
     
