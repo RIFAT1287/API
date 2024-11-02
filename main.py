@@ -7,6 +7,7 @@ from bson.objectid import ObjectId
 from datetime import datetime
 import time
 from typing import List
+import json
 
 app = FastAPI()
 token = C.TOKEN
@@ -360,8 +361,24 @@ async def ref_set(user_id: int, ref: int):
 @app.get("/getrefer")
 async def ref_get(user_id: int):
     try:
-        ido = dbo.get_property(user_id, "referby", default=None)
-        return {"referred_by": ido}
+        ido = dbo.get_property(user_id, "referby") or None
+       
+        return ido
     except Exception as e:
-        print(f"Error getting ref for user {user_id}: {e}")
-        raise HTTPException(status_code=500, detail="Failed to retrieve ref")
+        print(f"Error get ref for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to set ref")
+        
+@app.get("/save_transaction")
+async def save_tran(user_id: int, transaction: str):
+    try:
+        # Parse the transaction JSON string
+        transaction_data = json.loads(transaction)
+
+        # Add transaction to the database
+        dbo.add_transaction(user_id, transaction_data)
+
+        return {"success": True, "message": "Transaction added successfully"}
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid transaction data format")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to add transaction: {e}")
