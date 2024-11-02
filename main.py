@@ -369,16 +369,26 @@ async def ref_get(user_id: int):
         raise HTTPException(status_code=500, detail="Failed to set ref")
         
 @app.get("/save_transaction")
-async def save_tran(user_id: int, transaction: str):
-    try:
-        # Parse the transaction JSON string
-        transaction_data = json.loads(transaction)
+async def save_tran(user_id: int, tronix_reward: float):
+    
+    time = datetime.now().strftime('%H:%M:%S')
+    date = datetime.now().strftime('%d/%m/%Y')
 
-        # Add transaction to the database
-        dbo.add_transaction(user_id, transaction_data)
+    tronix_data = {
+        "date_time": {
+            "time": time,
+            "date": date
+        },
+        "sum": {
+            "tronix": tronix_reward
+        },
+        "type": "Bonus",
+        "status": "completed"
+    }
+    print(tronix_data)
+    try:
+        dbo.add_transaction(user_id, tronix_data)
 
         return {"success": True, "message": "Transaction added successfully"}
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=400, detail="Invalid transaction data format")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to add transaction: {e}")
