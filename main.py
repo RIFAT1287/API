@@ -240,7 +240,7 @@ async def update_balance(request: UpdateBalanceRequest):
     amount = float(request.amount)
     con = request.set_coin
     
-    if coin == 'TRX':
+    if coin == 'TON':
         prev = float(dbo.get_property(user_id, "ton") or 0)
         new_balance =prev - amount
         if new_balance < 0:
