@@ -177,11 +177,7 @@ async def claim_ton(user: int, mined_ton: float):
 @app.post("/update_hase_power", response_model=HasePowerUpdateResponse)
 async def update_hase_power(data: HasePowerUpdateRequest):
     try:
-        current_hase_power = dbo.get_property(data.user, "ghs") or 0
-        new_hase_power = current_hase_power + data.hase_power
-
-        
-        dbo.set_property(data.user, "ghs", new_hase_power)
+        dbo.add_value(data.user, "ghs", data.hase_power)
         
         return {"success": True}
         
