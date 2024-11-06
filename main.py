@@ -97,8 +97,8 @@ async def get_balance(user: int, hash:int):
         ton_balance = dbo.get_property(user, "ton") or 0
         tronix_balance = dbo.get_property(user, "tonx") or 0
         mined_ton = dbo.get_property(user, "mined_ton") or 0
-        ghs = dbo.get_property(user, "ghs")
-        if ghs==None:
+        ghs = dbo.get_property(user, "ghs") or 0
+        if ghs==0:
             ghs=hash
         status= dbo.get_property(user, "status") or "start"
         
@@ -161,7 +161,11 @@ async def calculate_mined_ton(user: int, cps:float):
   
   
 @app.get("/claim_ton", response_model=ClaimTonResponse)
-async def claim_ton(user: int, mined_ton: float):
+async def claim_ton(user: int, mined_ton: float, min: float):
+
+    minimum_claim=min
+    if mined_ton < minimum_claim:
+        raise HTTPException(status_code=400, detail="Insufficient mined TON to claim.")
     try:
         user_balance = dbo.get_property(user, "ton") or 0
         updated_balance = user_balance + mined_ton
@@ -169,13 +173,14 @@ async def claim_ton(user: int, mined_ton: float):
         dbo.set_property(user, "mined_ton", 0)
         return {"status": "success", "message": "TON claimed successfully."}
     except Exception as e:
-        print(f"Error claiming TON for user {user}: {e}")
+        print(f"Error claiming TON for user {user_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to update balance in database")   
 
     
   
 @app.post("/update_hase_power", response_model=HasePowerUpdateResponse)
 async def update_hase_power(data: HasePowerUpdateRequest):
+    print(data.user, data.hase_power)
     try:
         dbo.add_value(data.user, "ghs", data.hase_power)
         
@@ -228,7 +233,7 @@ async def get_boost_data():
     except Exception as e:
         print(f"Error retrieving boost data for user : {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve boost data")
-        
+
 @app.post("/update_balance")
 async def update_balance(request: UpdateBalanceRequest):
     user_id = request.user_id
@@ -236,7 +241,7 @@ async def update_balance(request: UpdateBalanceRequest):
     amount = float(request.amount)
     con = request.set_coin
     
-    if coin == 'TON':
+    if coin == 'TRX':
         prev = float(dbo.get_property(user_id, "ton") or 0)
         new_balance =prev - amount
         if new_balance < 0:
@@ -333,7 +338,7 @@ async def get_friend_data(user_id: int):
 @app.get("/ref_bonus")
 async def ref_bonus(user_id: int, tronix: float, ghs: float):
     try:
-        dbo.add_value(user_id, "ton", tronix)
+        dbo.add_value(user_id, "tonx", tronix)
         dbo.add_value(user_id, "ghs", ghs)
         return {"success": True}
     except Exception as e:
