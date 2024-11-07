@@ -116,6 +116,16 @@ async def get_balance(user: int, hash:int):
         print(f"Error fetching balance for user {user}: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
+@app.get("/mine_ton")
+async def get_balance(user: int):
+    try:
+        t = dbo.get_property(user, "mined_ton") or 0
+        mo = f"{t:.10f}"
+        return t
+    except Exception as e:
+        print(f"Error changing status for user {user}: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")        
+
 @app.get("/update_mining_status", response_model=UpdateMiningStatus)
 async def update_mining_status(user: int):
     try:
