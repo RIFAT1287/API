@@ -348,7 +348,7 @@ async def get_friend_data(user_id: int):
 @app.get("/ref_bonus")
 async def ref_bonus(user_id: int, tronix: float, ghs: float):
     try:
-        dbo.add_value(user_id, "tonx", tronix)
+        dbo.add_value(user_id, "ton", tronix)
         dbo.add_value(user_id, "ghs", ghs)
         return {"success": True}
     except Exception as e:
