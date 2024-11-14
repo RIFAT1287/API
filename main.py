@@ -40,6 +40,10 @@ class UpdateMiningStatus(BaseModel):
 class MinedTonResponse(BaseModel):
     status: str
     mined_ton: float
+    
+class MineResponse(BaseModel):
+    status: str
+    mined_ton: float    
 
 class ClaimTonResponse(BaseModel):
     status: str
@@ -156,8 +160,7 @@ async def calculate_mined_ton(user: int, cps:float):
         mining_value_per_sec = hase_power * coin_per_second
         new_mined_ton = mining_value_per_sec * mining_duration
     
-        mined_ton = dbo.get_property(user, "mined_ton") or 0  
-        
+        mined_ton = dbo.get_property(user, "mined_ton") or 0    
         dbo.add_value(user, "mined_ton", new_mined_ton)
         dbo.set_property(user, "last_mined", datetime.now().strftime('%Y/%m/%d %H:%M:%S'))
         updated_mined_ton=new_mined_ton + mined_ton
@@ -169,9 +172,25 @@ async def calculate_mined_ton(user: int, cps:float):
         print(f"Error calculating mined TON for user {user}: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
   
+  
+  
+@app.get("/update_mine", response_model=MineResponse)
+async def cal_mined_ton(user: int, ton:float):
+    try:
+        status= dbo.get_property(user, "status") or "start"
+        if not status == "active":
+            raise HTTPException(status_code=404, detail="User not found or mining not active")
+    
+        mined_ton = dbo.get_property(user, "mined_ton") or 0    
+        dbo.add_value(user, "mined_ton", ton)
+        dbo.set_property(user, "last_mined", datetime.now().strftime('%Y/%m/%d %H:%M:%S'))
+        
+    
+        return {"status": "success", "mined_ton": ton}
 
-
-
+    except Exception as e:
+        print(f"Error calculating mined TON for user {user}: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")  
   
 @app.get("/claim_ton", response_model=ClaimTonResponse)
 async def claim_ton(user: int, mined_ton: float, min: float):
