@@ -6,7 +6,7 @@ class C(object):
     
     DB_URL="mongodb+srv://RIFAT:RIFAT@loungebots.mkqqgkm.mongodb.net/?retryWrites=true&w=majority" #Mongo DB URL
     TOKEN="7309874673:AAFOpwm2CG6YaE96kxSzGQ1uOTachDv8eIQ" #BOT TOKEN
-    DB_NAME="TONGO" #DATABASE NAME
+    DB_NAME="TONGOo" #DATABASE NAME
     BOT_NAME="ROKSE_TRX_AUTO_BOT" #BOT USERNAME WITHOUT @
     SUB1 ="@JUSTPYTINVE"
     SUB2 = "@JUSTPYTINVE"
