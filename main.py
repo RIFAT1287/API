@@ -157,10 +157,10 @@ async def calculate_mined_ton(user: int, cps:float):
         new_mined_ton = mining_value_per_sec * mining_duration
     
         mined_ton = dbo.get_property(user, "mined_ton") or 0  
-        updated_mined_ton = new_mined_ton + mined_ton
-        dbo.add_value(user, "mined_ton", updated_mined_ton)
-        dbo.set_property(user, "last_mined", datetime.now().strftime('%Y/%m/%d %H:%M:%S'))
         
+        dbo.add_value(user, "mined_ton", new_mined_ton)
+        dbo.set_property(user, "last_mined", datetime.now().strftime('%Y/%m/%d %H:%M:%S'))
+        updated_mined_ton=new_mined_ton + mined_ton
     
     
         return {"status": "success", "mined_ton": updated_mined_ton}
