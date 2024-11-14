@@ -153,7 +153,7 @@ async def calculate_mined_ton(user: int, cps:float):
             last_mined_time = current_time
         last_mined_timestamp = datetime.strptime(last_mined_time, '%Y/%m/%d %H:%M:%S').timestamp() 
     
-        hase_power = dbo.get_property(user, "ghs") or 9
+        hase_power = dbo.get_property(user, "ghs") or 50
         coin_per_second = cps
     
         mining_duration = current_time - last_mined_timestamp
